@@ -48,14 +48,34 @@ public class WikiCrawler {
 
 	/**
 	 * Gets a URL from the queue and indexes it.
-	 * @param b 
+	 * @param testing
 	 * 
-	 * @return Number of pages indexed.
+	 * @return URL of the page indexed.
 	 * @throws IOException
 	 */
 	public String crawl(boolean testing) throws IOException {
-        // FILL THIS IN!
-		return null;
+        // TODO FILL THIS IN!
+
+        if (queue.isEmpty()) {
+            return null;
+        }
+        String url = queue.poll();
+        System.out.println("Crawling " + url);
+
+        if (!testing && index.isIndexed(url)) {
+            System.out.println("Already indexed.");
+            return null;
+        }
+
+        Elements paragraphs;
+        if (testing) {
+            paragraphs = wf.readWikipedia(url);
+        } else {
+            paragraphs = wf.fetchWikipedia(url);
+        }
+        index.indexPage(url, paragraphs);
+        queueInternalLinks(paragraphs);
+        return url;
 	}
 	
 	/**
@@ -65,7 +85,19 @@ public class WikiCrawler {
 	 */
 	// NOTE: absence of access level modifier means package-level
 	void queueInternalLinks(Elements paragraphs) {
-        // FILL THIS IN!
+        // TODO FILL THIS IN!
+        for (Element paragraph: paragraphs) {
+            Elements elts = paragraph.select("a[href]");
+            for (Element elt: elts) {
+                String relURL = elt.attr("href");
+
+                if (relURL.startsWith("/wiki/")) {
+                    String absURL = "https://en.wikipedia.org" + relURL;
+                    //System.out.println(absURL);
+                    queue.offer(absURL);
+                }
+            }
+        }
 	}
 
 	public static void main(String[] args) throws IOException {
@@ -85,7 +117,7 @@ public class WikiCrawler {
 		do {
 			res = wc.crawl(false);
 
-            // REMOVE THIS BREAK STATEMENT WHEN crawl() IS WORKING
+            // TODO REMOVE THIS BREAK STATEMENT WHEN crawl() IS WORKING
             break;
 		} while (res == null);
 		
